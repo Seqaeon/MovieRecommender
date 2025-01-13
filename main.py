@@ -2,7 +2,6 @@ import streamlit as st
 
 
 # for getting random links
-import scrapetube
 import random
 # to convert numpy array to list
 import numpy as np
@@ -14,32 +13,23 @@ import random
 import ast
 import time
 import openai
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from tqdm.notebook import tqdm
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 import re
 import os
 import requests
 import streamlit_analytics2
 import urllib.request
-from tqdm.notebook import tqdm
 from IPython.display import clear_output
-import os
 # for getting youtube length
-from pytube import YouTube
 # for bucketing
 import embedding_bucketing.embedding_model_test as em
 # own modules ao_core arch and config
-from config import openai_api_key, hf_token
+from config import openai_api_key #, hf_token
 from huggingface_hub import hf_hub_download
 
 import ao_core as ao
 from arch__Recommender import arch
 import json
-import time
 from typing import List
 import requests
 from bs4 import BeautifulSoup

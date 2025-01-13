@@ -1,0 +1,24 @@
+numpy==1.26.4
+pandas
+pytube==15.0.0
+requests==2.32.3
+
+streamlit
+streamlit_analytics2
+
+git+https://github.com/Rafipilot/embedding_bucketing
+git+https://github.com/aolabsai/ao_core
+git+https://github.com/aolabsai/ao_arch
+
+beautifulsoup4  # for adding metadata to index.html when deploying with docker
+
+
+openai
+
+tqdm
+
+
+datasets
+huggingface-hub
+kagglehub
+multiprocessing

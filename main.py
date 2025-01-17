@@ -1,15 +1,9 @@
 import streamlit as st
-
-
-# for getting random links
 import random
-# to convert numpy array to list
 import numpy as np
 import pandas as pd
-# for getting title
 import shutil
 import gc
-import random
 import ast
 import time
 import openai
@@ -19,11 +13,7 @@ import os
 import requests
 import streamlit_analytics2
 import urllib.request
-from IPython.display import clear_output
-# for getting youtube length
-# for bucketing
-import embedding_bucketing.embedding_model_test as em
-# own modules ao_core arch and config
+
 from config import openai_api_key #, hf_token
 from huggingface_hub import hf_hub_download
 
@@ -31,11 +21,8 @@ import ao_core as ao
 from arch__Recommender import arch
 import json
 from typing import List
-import requests
 from bs4 import BeautifulSoup
 from datasets import Dataset
-import kagglehub
-import multiprocessing as mp
 
 import struct
 
@@ -63,6 +50,8 @@ if "training_history" not in st.session_state:
     st.session_state.numberVideos = 0
 if "mood" not in st.session_state:
     st.session_state.mood = ["Random"]
+if "type" not in st.session_state:
+    st.session_state.type = ["Both"]
 if "display_video" not in st.session_state:
     st.session_state.display_video = False
 if "natural_language_input" not in st.session_state:
@@ -169,7 +158,7 @@ df = load_and_optimize_df()
 all_genres = process_genres(df)
 
 
-def get_plot(filter_genres, df, all_genres, movie_id=None, released_only=True, retries=10, openai_api_key=openai_api_key, dimensions=4, subgenres=data_genre['subgenres']):
+def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=True, retries=10, openai_api_key=openai_api_key, dimensions=4, subgenres=data_genre['subgenres']):
     if retries == 0:
         raise ValueError("No released movies found after maximum retries.")
     # Set your OpenAI API key
@@ -201,7 +190,14 @@ def get_plot(filter_genres, df, all_genres, movie_id=None, released_only=True, r
         bin_array = np.array([int(i) for i in binary_string], dtype=np.int8)
         return bin_array
     # df = df[['tconst', 'genres']]
-    df['averageRating']  = df['averageRating'].astype(float) 
+    df['averageRating']  = df['averageRating'].astype(float)
+    if type == "Movies":
+        filtered_list = ['movie', 'tvMovie', 'video']
+    elif type == "TV Shows":
+        filtered_list = ['tvSeries', 'tvMiniSeries']
+    else:
+        filtered_list = ['movie', 'tvMovie', 'tvSeries', 'tvMiniSeries', 'video']
+    df = df[df['titleType'].isin(filtered_list)]
     if movie_id is None:
         def optimize_genre_filter_v3(df, filter_genres):
             # Create a regex pattern for matching genres
@@ -551,6 +547,7 @@ def prepare_for_next_video(user_feedback):  # Only run once per video
 def next_video(df, all_genres):
 
     mood = st.session_state.mood
+    type = st.session_state.type
     if "Random" in mood:
         filter_genres = random.sample(all_genres, random.randint(1, 5))
 
@@ -559,7 +556,7 @@ def next_video(df, all_genres):
     print("Starting Next Video Processing")
     (imdb_id, primaryTitle, originalTitle, genres_i, actors, crew, directors, writers, budget, openingWeekendGross, revenue, status, trivia, wins,
      nominationsExcludeWins, goofs, origin, trailers,
-     keywords, genres, languages, movie_rating, image, quotes, summary, synopsis, numVotes, runtimeMinutes, averageRating, startYear, endYear, summary_text, synopsis_text) = get_plot(filter_genres, df, all_genres)
+     keywords, genres, languages, movie_rating, image, quotes, summary, synopsis, numVotes, runtimeMinutes, averageRating, startYear, endYear, summary_text, synopsis_text) = get_plot(filter_genres, df, all_genres,type)
     print("Done processing Next Video")
     data = imdb_id
     if data not in st.session_state.videos_in_list:
@@ -842,7 +839,7 @@ with st.sidebar:
 ############################################################################
 
 # Title of the app
-st.title("LLM + WNNs - a Real-Time Personal YouTube Recommender")
+st.title("LLM + WNNs - a Real-Time Personal Movie and TV Show Recommender")
 st.write("### *a preview by [aolabs.ai](https://www.aolabs.ai/)*")
 
 # big_left, big_right = st.columns([0.3, 0.7], gap="large")
@@ -868,7 +865,7 @@ st.write("### *a preview by [aolabs.ai](https://www.aolabs.ai/)*")
 
 with st.expander("How this app works:", expanded=True, icon=":material/question_mark:"):
     explain_txt = '''
-    YouTube recommendations are often impersonal and hard to control-- the ominous *"Algorithm."*
+    Movie and TV Shows recommendations are often impersonal and hard to control-- the ominous *"Algorithm."*
 
     This app is a preview of a new concept-- a personal recommender that's continuously (re)trained only on your data as you use it; the idea of a recommender as a remote control instead of a pre-trained model trying to get your views.\n
     
@@ -892,7 +889,16 @@ st.session_state.mood = st.multiselect(
     default=["Random"]  # Pre-select "Random"
 )
 
-
+# st.session_state.type = st.multiselect(
+#     "Set your mood (as the user):",
+#     ['Both', 'Movies', 'TV Shows'],
+#     default=["Both"]  # Pre-select "Random"
+# )
+st.session_state.type = st.selectbox(
+    "Set your mood (as the user):",
+    ['Both', 'Movies', 'TV Shows'],
+    index=0  # Pre-select "Both"
+)
 st.write("Video number: ", str(st.session_state.numberVideos))
 small_right, small_left = st.columns(2)
 if small_right.button(":green[RECOMMEND MORE]", type="primary", icon=":material/thumb_up:"):

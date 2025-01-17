@@ -21,4 +21,4 @@ tqdm
 datasets
 huggingface-hub
 kagglehub
-multiprocessing
+ipython

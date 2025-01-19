@@ -158,7 +158,7 @@ df = load_and_optimize_df()
 all_genres = process_genres(df)
 
 
-def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=True, retries=10, openai_api_key=openai_api_key, dimensions=4, subgenres=data_genre['subgenres']):
+def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=True, retries=10, openai_api_key=openai_api_key, dimensions=2, subgenres=data_genre['subgenres']):
     if retries == 0:
         raise ValueError("No released movies found after maximum retries.")
     # Set your OpenAI API key
@@ -289,7 +289,8 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
                     budget = 0
             except:
                 budget = 0  # Assign a default value or handle the error
-            budget = get_boxoffice(budget=budget, width=32)
+            budget = int(np.round(budget/1000000))
+            budget = get_boxoffice(budget=budget, width=10)
 
             try:
                 openingWeekendGross = int(
@@ -298,8 +299,8 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
                     openingWeekendGross = 0
             except:
                 openingWeekendGross = 0
-            openingWeekendGross = get_boxoffice(
-                budget=openingWeekendGross, width=32)
+            openingWeekendGross = int(np.round(openingWeekendGross/1000000))
+            openingWeekendGross = get_boxoffice(budget=openingWeekendGross, width=10)
             try:
                 revenue = int(a['props']['pageProps']['mainColumnData']
                               ['worldwideGross']['total']['amount'])
@@ -307,7 +308,8 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
                     revenue = 0
             except:
                 revenue = 0
-            revenue = get_boxoffice(budget=revenue, width=32)
+            revenue = int(np.round(revenue/1000000))
+            revenue = get_boxoffice(budget=revenue, width=12)
 
             try:
                 trivia = " ".join([i['node']['text']['plaidHtml']
@@ -375,7 +377,8 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
                           ['pageProps']['aboveTheFoldData']['interests']['edges']]
             except:
                 genres = []
-            genres = get_genre(genres)
+            genres = " ".join(genres)
+            #genres = get_genre(genres)
 
             try:
                 languages = [i['text'] for i in a['props']['pageProps']
@@ -415,14 +418,15 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
             break
 
         elif response.status_code >= 500:
-            budget, openingWeekendGross, revenue, status, trivia, wins, nominationsExcludeWins, goofs, origin, trailers, keywords, genres, languages, movie_rating, image, quotes = get_boxoffice(budget=0, width=32), get_boxoffice(
-                budget=0, width=32), get_boxoffice(budget=0, width=32), " ", " ", get_boxoffice(budget=0, width=10), get_boxoffice(budget=0, width=10), " ", " ", [], " ", get_genre([]), " ", " ", " ", " "
+            budget, openingWeekendGross, revenue, status, trivia, wins, nominationsExcludeWins, goofs, origin, trailers, keywords, genres, languages, movie_rating, image, quotes = get_boxoffice(budget=0, width=10), get_boxoffice(
+                budget=0, width=10), get_boxoffice(budget=0, width=12), " ", " ", get_boxoffice(budget=0, width=10), get_boxoffice(budget=0, width=10), " ", " ", [], " ", get_genre([]), " ", " ", " ", " "
 
             continue
 
         else:
-            budget, openingWeekendGross, revenue, status, trivia, wins, nominationsExcludeWins, goofs, origin, trailers, keywords, genres, languages, movie_rating, image, quotes = get_boxoffice(budget=0, width=32), get_boxoffice(
-                budget=0, width=32), get_boxoffice(budget=0, width=32), " ", " ", get_boxoffice(budget=0, width=10), get_boxoffice(budget=0, width=10), " ", " ", [], " ", get_genre([]), " ", " ", " ", " "
+            budget, openingWeekendGross, revenue, status, trivia, wins, nominationsExcludeWins, goofs, origin, trailers, keywords, genres, languages, movie_rating, image, quotes = get_boxoffice(budget=0, width=10), get_boxoffice(
+                budget=0, width=10), get_boxoffice(budget=0, width=12), " ", " ", get_boxoffice(budget=0, width=10), get_boxoffice(budget=0, width=10), " ", " ", [], " ", get_genre([]), " ", " ", " ", " "
+
             break
 
     def extract_text(div):
@@ -482,16 +486,16 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
 
     primaryTitle, originalTitle, genres_i, actors, crew, directors, writers = df[df['tconst'] == imdb_id]['primaryTitle'].values[0], df[df['tconst'] == imdb_id]['originalTitle'].values[0], df[df['tconst'] == imdb_id][
         'genres'].values[0], df[df['tconst'] == imdb_id]['actors'].values[0], df[df['tconst'] == imdb_id]['crew'].values[0], df[df['tconst'] == imdb_id]['directors'].values[0], df[df['tconst'] == imdb_id]['writers'].values[0]
-    numVotes, runtimeMinutes, averageRating = int(df[df['tconst'] == imdb_id]['numVotes'].values[0]), int(df[df['tconst'] == imdb_id]['runtimeMinutes'].values[0]),  float_to_binary(
-        # int(np.round(df[df['tconst'] == imdb_id]['averageRating'].values[0]))
-        df[df['tconst'] == imdb_id]['averageRating'].values[0], precision="32-bit")
-    numVotes, runtimeMinutes = get_boxoffice(budget=numVotes, width=32), get_boxoffice(
+    numVotes, runtimeMinutes, averageRating = int(df[df['tconst'] == imdb_id]['numVotes'].values[0]), int(df[df['tconst'] == imdb_id]['runtimeMinutes'].values[0]),  get_boxoffice(budget=int(np.round(df[df['tconst'] == imdb_id]['averageRating'].values[0])), width=4)
+    #float_to_binary(df[df['tconst'] == imdb_id]['averageRating'].values[0], precision="32-bit")
+    numVotes, runtimeMinutes = get_boxoffice(budget=int(np.round(numVotes/100000)), width=10), get_boxoffice(
         # , get_boxoffice(budget= averageRating, width= 4)
-        budget=runtimeMinutes, width=32)
+        budget=int(np.round(runtimeMinutes/60)), width=8)
+
 
     # Define the text you want to embed
     texts = [
-        primaryTitle, originalTitle, genres_i, actors, crew, directors, writers, trivia,
+        primaryTitle, originalTitle, genres, actors, crew, directors, writers, trivia,
         goofs, origin,
         keywords, languages, movie_rating, quotes, summary, synopsis
     ]
@@ -503,7 +507,7 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
     embeddings = np.array([np.array([float_to_binary(i)
                           for i in j]).reshape(-1) for j in embeddings])
 
-    primaryTitle, originalTitle, genres_i, actors, crew, directors, writers, trivia, goofs, origin, keywords, languages, movie_rating, quotes, summary, synopsis = embeddings
+    primaryTitle, originalTitle, genres, actors, crew, directors, writers, trivia, goofs, origin, keywords, languages, movie_rating, quotes, summary, synopsis = embeddings
 
     startYear, endYear = df[df['tconst'] ==
                             imdb_id]['startYear'].values[0], df[df['tconst'] == imdb_id]['endYear'].values[0]
@@ -563,7 +567,7 @@ def next_video(df, all_genres):
         st.session_state.videos_in_list.append(data)
     st.session_state.display_video = True
     combined_array = np.concatenate([
-        primaryTitle, originalTitle, genres_i, actors, crew, directors, writers,
+        primaryTitle, originalTitle, actors, crew, directors, writers,
         budget, openingWeekendGross, revenue, trivia, wins,
         nominationsExcludeWins, goofs, origin, keywords, genres, languages,
         movie_rating, quotes, summary, synopsis, numVotes, runtimeMinutes, averageRating, startYear, endYear

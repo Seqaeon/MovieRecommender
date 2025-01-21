@@ -228,14 +228,31 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
     else:
         imdb_id = movie_id
 
+    # def get_genre(genre: List[str]):
+
+    #     genre_bin = np.zeros(len(subgenres))
+    #     if genre:
+    #         genre = [i for i in genre if i in subgenres]
+
+    #         for i in genre:
+    #             genre_bin[subgenres.index(i)] = 1
+
+    #     return genre_bin
     def get_genre(genre: List[str]):
 
-        genre_bin = np.zeros(len(subgenres))
-        if genre:
-            genre = [i for i in genre if i in subgenres]
+        genre_bin = []
+        #if genre:
+        genre = [i for i in genre if i in subgenres]
 
-            for i in genre:
-                genre_bin[subgenres.index(i)] = 1
+        for i in genre[:10]:
+            index = subgenres.index(i)
+            bin_array = np.array([int(i) for i in list(np.binary_repr(int(index), 8))])
+            genre_bin.append(bin_array)
+        if len(genre_bin) < 10:
+            for i in range(10-len(genre_bin)):
+                bin_array = np.array([int(i) for i in list(np.binary_repr(int(0), 8))])
+                genre_bin.append(bin_array)
+
 
         return genre_bin
 
@@ -378,7 +395,7 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
             except:
                 genres = []
             genres = " ".join(genres)
-            #genres = get_genre(genres)
+            genres = get_genre(genres)
 
             try:
                 languages = [i['text'] for i in a['props']['pageProps']
@@ -495,7 +512,7 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
 
     # Define the text you want to embed
     texts = [
-        primaryTitle, originalTitle, genres, actors, crew, directors, writers, trivia,
+        primaryTitle, originalTitle, actors, crew, directors, writers, trivia,
         goofs, origin,
         keywords, languages, movie_rating, quotes, summary, synopsis
     ]
@@ -507,7 +524,7 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
     embeddings = np.array([np.array([float_to_binary(i)
                           for i in j]).reshape(-1) for j in embeddings])
 
-    primaryTitle, originalTitle, genres, actors, crew, directors, writers, trivia, goofs, origin, keywords, languages, movie_rating, quotes, summary, synopsis = embeddings
+    primaryTitle, originalTitle, actors, crew, directors, writers, trivia, goofs, origin, keywords, languages, movie_rating, quotes, summary, synopsis = embeddings
 
     startYear, endYear = df[df['tconst'] ==
                             imdb_id]['startYear'].values[0], df[df['tconst'] == imdb_id]['endYear'].values[0]
@@ -569,7 +586,7 @@ def next_video(df, all_genres):
     combined_array = np.concatenate([
         primaryTitle, originalTitle, actors, crew, directors, writers,
         budget, openingWeekendGross, revenue, trivia, wins,
-        nominationsExcludeWins, goofs, origin, keywords, genres, languages,
+        nominationsExcludeWins, goofs, origin, keywords, *genres, languages,
         movie_rating, quotes, summary, synopsis, numVotes, runtimeMinutes, averageRating, startYear, endYear
     ])
 

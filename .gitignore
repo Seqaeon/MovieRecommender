@@ -1,0 +1,21 @@
+
+
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+.env
+.venv
+config.py
+__pycache__
+
+genre_embedding_cache.json
+genres_dict.json
+
+
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+
+

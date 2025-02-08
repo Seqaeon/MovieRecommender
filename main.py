@@ -54,6 +54,13 @@ if "type" not in st.session_state:
     st.session_state.type = ["Both"]
 if "display_video" not in st.session_state:
     st.session_state.display_video = False
+if "start_year" not in st.session_state:
+    st.session_state.start_year = 0
+if "date_range" not in st.session_state:
+    st.session_state.date_range = []
+if "end_year" not in st.session_state:
+    st.session_state.end_year = 0
+
 if "natural_language_input" not in st.session_state:
     st.session_state.natural_language_input = None
 if "recommened" not in st.session_state:
@@ -156,6 +163,8 @@ def process_genres(df):
 # Use the cached functions
 df = load_and_optimize_df()
 all_genres = process_genres(df)
+st.session_state.start_year = min(df[df['startYear'] > 0]['startYear'].values)
+st.session_state.end_year =  time.localtime().tm_year
 
 
 def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=True, retries=10, openai_api_key=openai_api_key, dimensions=2, subgenres=data_genre['subgenres']):
@@ -190,6 +199,7 @@ def get_plot(filter_genres, df, all_genres, type, movie_id=None, released_only=T
         bin_array = np.array([int(i) for i in binary_string], dtype=np.int8)
         return bin_array
     # df = df[['tconst', 'genres']]
+    df = df[(df['startYear'] >= st.session_state.start_year) & (df['startYear'] <=st.session_state.end_year)]
     df['averageRating']  = df['averageRating'].astype(float)
     if type == "Movies":
         filtered_list = ['movie', 'tvMovie', 'video']
@@ -915,11 +925,49 @@ st.session_state.mood = st.multiselect(
 #     ['Both', 'Movies', 'TV Shows'],
 #     default=["Both"]  # Pre-select "Random"
 # )
-st.session_state.type = st.selectbox(
-    "Set your mood (as the user):",
-    ['Both', 'Movies', 'TV Shows'],
-    index=0  # Pre-select "Both"
-)
+#st.session_state.type = st.selectbox(
+#    "Set your mood (as the user):",
+#    ['Both', 'Movies', 'TV Shows'],
+#    index=0  # Pre-select "Both"
+#)
+
+st.session_state.date_range = list(range(st.session_state.start_year, st.session_state.end_year+1))
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.session_state.type = st.selectbox(
+        "Set your mood (as the user):",
+        ['Both', 'Movies', 'TV Shows'],
+        index=0  # Pre-select "Both"
+    )
+
+with col2:
+    st.session_state.start_year = st.selectbox(
+        "Start Year",
+        st.session_state.date_range,
+        index=0  # Pre-select first item
+    )
+
+with col3:
+    st.session_state.end_year = st.selectbox(
+        "End Year",
+        st.session_state.date_range,
+        index=len(st.session_state.date_range)-1  # Pre-select last item
+    )
+
+#st.session_state.start_year = st.selectbox(
+#    "Start Year",
+#    st.session_state.date_range,
+#    index=0  # Pre-select "Both"
+#)
+#
+#st.session_state.end_year = st.selectbox(
+#    "End Year",
+#    st.session_state.date_range,
+#    index=len(st.session_state.date_range)-1 # Pre-select "Both"
+#) 
+
+
 st.write("Video number: ", str(st.session_state.numberVideos))
 small_right, small_left = st.columns(2)
 if small_right.button(":green[RECOMMEND MORE]", type="primary", icon=":material/thumb_up:"):

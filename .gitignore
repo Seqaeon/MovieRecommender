@@ -11,6 +11,7 @@ __pycache__
 
 genre_embedding_cache.json
 genres_dict.json
+languages.json
 
 
 

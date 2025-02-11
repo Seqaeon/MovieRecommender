@@ -41,6 +41,9 @@ st.set_page_config(
 # Initialize global variables
 if "videos_in_list" not in st.session_state:
     st.session_state.videos_in_list = []
+if "languages" not in st.session_state:
+    with open('languages.json', 'r') as file:
+        st.session_state.languages = json.load(file)
 if "recommendation_result" not in st.session_state:
     st.session_state.recommendation_result = []
 if "current_binary_input" not in st.session_state:
@@ -52,6 +55,8 @@ if "mood" not in st.session_state:
     st.session_state.mood = ["Random"]
 if "type" not in st.session_state:
     st.session_state.type = ["Both"]
+if "language" not in st.session_state:
+    st.session_state.language = ["Any"]
 if "display_video" not in st.session_state:
     st.session_state.display_video = False
 if "start_year" not in st.session_state:
@@ -613,6 +618,16 @@ def next_video(df, all_genres):
 
     title = df[df['tconst'] == imdb_id]['primaryTitle'].values[0]
     closest_genre = df[df['tconst'] == imdb_id]['genres'].values[0]
+    try:
+        closest_genre = ast.literal_eval(closest_genre)
+
+    except:
+        try:
+            closest_genre = closest_genre.replace(",","|").replace("[","").replace("]","").replace("'","")
+
+        except:
+            closest_genre = closest_genre
+
     length = int(df[df['tconst'] == imdb_id]['runtimeMinutes'].values[0])
     fnf = summary_text if summary_text != " " else synopsis_text
     st.session_state.natural_language_input = [
@@ -622,11 +637,13 @@ def next_video(df, all_genres):
         if st.session_state.threshold < 50:
             # bring the threshold up once videos are being recommended
             st.session_state.threshold += 10
-        st.markdown("     Genre: "+str(closest_genre),
+
+
+        st.markdown("     Genre: "+str("  ||  ".join(closest_genre)),
                     help="Extracted by an LLM")
         # st.markdown("     Length: "+str(length), help="in minutes; extracted via pytube")
         # st.markdown("     Fiction/Non-fiction: "+str(fnf), help="Extracted by an LLM")
-        st.markdown("     User's Mood: "+str(mood),  help="Inputted by user")
+        st.markdown("     User's Mood: "+str(mood[0]),  help="Inputted by user")
         st.markdown("")
         # Centered large text using HTML and CSS
         st.markdown("""
@@ -915,7 +932,7 @@ with st.expander("How this app works:", expanded=True, icon=":material/question_
     '''
     st.markdown(explain_txt)
 st.session_state.mood = st.multiselect(
-    "Set your mood (as the user):",
+    "Set your mood (Preferred Genre(s)):",
     ["Random"] + all_genres,
     default=["Random"]  # Pre-select "Random"
 )
@@ -931,28 +948,48 @@ st.session_state.mood = st.multiselect(
 #    index=0  # Pre-select "Both"
 #)
 
+
+
+
+
+
+
+
 st.session_state.date_range = list(range(st.session_state.start_year, st.session_state.end_year+1))
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.session_state.type = st.selectbox(
-        "Set your mood (as the user):",
+        "Choose Preferred Title Type:",
         ['Both', 'Movies', 'TV Shows'],
         index=0  # Pre-select "Both"
     )
 
+
+
+
 with col2:
     st.session_state.start_year = st.selectbox(
-        "Start Year",
-        st.session_state.date_range,
-        index=0  # Pre-select first item
-    )
+            "Start Year",
+            [year for year in st.session_state.date_range if year <= st.session_state.end_year][::-1],
+            index=len(st.session_state.date_range)-1    # Pre-select first item
+        )
 
 with col3:
     st.session_state.end_year = st.selectbox(
         "End Year",
-        st.session_state.date_range,
-        index=len(st.session_state.date_range)-1  # Pre-select last item
+        st.session_state.date_range[::-1],
+        index=0# Pre-select last item
+    )
+
+
+
+
+with col4:
+    st.session_state.language = st.selectbox(
+        "Choose a Primary Language",
+        ['Any'] + st.session_state.languages,
+        index=0  # Pre-select last item
     )
 
 #st.session_state.start_year = st.selectbox(
@@ -969,7 +1006,7 @@ with col3:
 
 
 st.write("Video number: ", str(st.session_state.numberVideos))
-small_right, small_left = st.columns(2)
+small_right, middle, small_left = st.columns(3)
 if small_right.button(":green[RECOMMEND MORE]", type="primary", icon=":material/thumb_up:"):
     # Train agent positively as user like recommendation
     train_agent(user_response="RECOMMEND MORE")
@@ -980,6 +1017,11 @@ if small_left.button(":red[STOP RECOMMENDING]", icon=":material/thumb_down:"):
     # train agent negatively as user dislike recommendation
     train_agent(user_response="STOP RECOMMENDING")
     user_feedback = "Less"
+    prepare_for_next_video(user_feedback)
+if middle.button(":blue[SKIP]", icon=":material/skip_next:"):
+    # train agent negatively as user dislike recommendation
+
+    user_feedback = "Skip"
     prepare_for_next_video(user_feedback)
 
 genre = next_video(df, all_genres)

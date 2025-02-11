@@ -978,7 +978,7 @@ with col2:
 with col3:
     st.session_state.end_year = st.selectbox(
         "End Year",
-        st.session_state.date_range[::-1],
+        st.session_state.date_range[st.session_state.date_range.index(st.session_state.start_year):][::-1],
         index=0# Pre-select last item
     )
 

@@ -41,9 +41,7 @@ st.set_page_config(
 # Initialize global variables
 if "videos_in_list" not in st.session_state:
     st.session_state.videos_in_list = []
-if "languages" not in st.session_state:
-    with open('languages.json', 'r') as file:
-        st.session_state.languages = json.load(file)
+
 if "recommendation_result" not in st.session_state:
     st.session_state.recommendation_result = []
 if "current_binary_input" not in st.session_state:
@@ -65,6 +63,14 @@ if "date_range" not in st.session_state:
     st.session_state.date_range = []
 if "end_year" not in st.session_state:
     st.session_state.end_year = 0
+
+
+
+if "start_year_options" not in st.session_state:
+    st.session_state.start_year_options = []
+
+if "end_year_options" not in st.session_state:
+    st.session_state.end_year_options = []
 
 if "natural_language_input" not in st.session_state:
     st.session_state.natural_language_input = None
@@ -937,16 +943,7 @@ st.session_state.mood = st.multiselect(
     default=["Random"]  # Pre-select "Random"
 )
 
-# st.session_state.type = st.multiselect(
-#     "Set your mood (as the user):",
-#     ['Both', 'Movies', 'TV Shows'],
-#     default=["Both"]  # Pre-select "Random"
-# )
-#st.session_state.type = st.selectbox(
-#    "Set your mood (as the user):",
-#    ['Both', 'Movies', 'TV Shows'],
-#    index=0  # Pre-select "Both"
-#)
+
 
 
 
@@ -956,7 +953,7 @@ st.session_state.mood = st.multiselect(
 
 
 st.session_state.date_range = list(range(st.session_state.start_year, st.session_state.end_year+1))
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3 = st.columns(3)
 
 with col1:
     st.session_state.type = st.selectbox(
@@ -966,31 +963,59 @@ with col1:
     )
 
 
-
+#
+# Callback functions to update the values
+#def update_start_year():
+#    # Ensure start_year is not greater than end_year
+#    if st.session_state.start_year > st.session_state.end_year:
+#        st.session_state.start_year = st.session_state.end_year
+#
+#def update_end_year():
+#    # Ensure end_year is not less than start_year
+#    if st.session_state.end_year < st.session_state.start_year:
+#        st.session_state.start_year = st.session_state.end_year
+#
+#with col2:
+#    st.selectbox(
+#        "Start Year",
+#        [year for year in st.session_state.date_range if year <= st.session_state.end_year][::-1],
+#        key="start_year",
+#        on_change=update_start_year,
+#        #index=len([year for year in st.session_state.date_range if year <= st.session_state.end_year])-1
+#    )
+#
+#with col3:
+#    st.selectbox(
+#        "End Year",
+#        st.session_state.date_range[st.session_state.date_range.index(st.session_state.start_year):][::-1],
+#        key="end_year",
+#        on_change=update_end_year,
+#        #index=0
+#    )
+#
 
 with col2:
+    st.session_state.start_year_options = [year for year in st.session_state.date_range if year <= st.session_state.end_year][::-1]
     st.session_state.start_year = st.selectbox(
             "Start Year",
-            [year for year in st.session_state.date_range if year <= st.session_state.end_year][::-1],
-            index=len(st.session_state.date_range)-1    # Pre-select first item
-        )
+            st.session_state.start_year_options,
+            
+            index=len(st.session_state.date_range)-1,
+            #key="start_year"    # Pre-select first item
+            )
 
 with col3:
+    st.session_state.end_year_options = st.session_state.date_range[st.session_state.date_range.index(st.session_state.start_year):][::-1]
     st.session_state.end_year = st.selectbox(
         "End Year",
-        st.session_state.date_range[st.session_state.date_range.index(st.session_state.start_year):][::-1],
-        index=0# Pre-select last item
-    )
+        st.session_state.end_year_options,
+        index=0, 
+        #key="end_year"# Pre-select last item
+     )   
 
 
 
 
-with col4:
-    st.session_state.language = st.selectbox(
-        "Choose a Primary Language",
-        ['Any'] + st.session_state.languages,
-        index=0  # Pre-select last item
-    )
 
 #st.session_state.start_year = st.selectbox(
 #    "Start Year",

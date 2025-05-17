@@ -1,10 +1,9 @@
 # Recommender System
-### Author & Maintainer: Rafipilot
-Maintainer: [Rafipilot](https://github.com/Rafipilot), rafayel.latif@gmail.com
+
 
 
 ## Description
-This is a basic video recommender system designed to offer personalized video recommendations. Unlike many modern systems that rely on collaborative filtering—resulting in suggestions based on broad user trends—this system aims to provide more unique and individually tailored recommendations. By giving users greater control over how they provide feedback, the system helps break free from repetitive content and exposes users to a wider range of videos, making it easier to find content that truly resonates with their tastes.
+This is a basic video recommender system designed to offer personalized movie recommendations. Unlike many modern systems that rely on collaborative filtering—resulting in suggestions based on broad user trends—this system aims to provide more unique and individually tailored recommendations. By giving users greater control over how they provide feedback, the system helps break free from repetitive content and exposes users to a wider range of videos, making it easier to find content that truly resonates with their tastes.
 
 ## Installation/Setup
 
